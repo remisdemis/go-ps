@@ -21,7 +21,8 @@ type UnixProcess struct {
 	pgrp  int
 	sid   int
 
-	binary string // binary name might be truncated
+	binary  string // binary name might be truncated
+	cmdline string
 }
 
 // Pid returns process id
@@ -42,6 +43,10 @@ func (p *UnixProcess) Executable() string {
 		return p.binary
 	}
 	return filepath.Base(path)
+}
+
+func (p *UnixProcess) Cmdline() string {
+	return p.cmdline
 }
 
 // Path returns path to process executable
@@ -72,6 +77,10 @@ func (p *UnixProcess) Refresh() error {
 		&p.ppid,
 		&p.pgrp,
 		&p.sid)
+
+	cmdlinePath := fmt.Sprintf("/proc/%d/cmdline", p.pid)
+	cmdline, _ := ioutil.ReadFile(cmdlinePath) // ignore the error since we don't care if we don't get the cmdline
+	p.cmdline = string(cmdline)
 
 	return err
 }
